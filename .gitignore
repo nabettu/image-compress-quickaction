@@ -1,0 +1,13 @@
+# Bundled binaries (built by GitHub Actions)
+画像を圧縮.workflow/Contents/bin/
+
+# Distribution zip
+*.zip
+
+# macOS
+.DS_Store
+
+# Old files
+compress.sh
+install.sh
+uninstall.sh

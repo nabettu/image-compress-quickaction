@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AMApplicationBuild</key>
+	<string>523</string>
+	<key>AMApplicationVersion</key>
+	<string>2.10</string>
+	<key>AMDocumentVersion</key>
+	<string>2</string>
+	<key>actions</key>
+	<array>
+		<dict>
+			<key>action</key>
+			<dict>
+				<key>AMAccepts</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Optional</key>
+					<false/>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.path</string>
+					</array>
+				</dict>
+				<key>AMActionVersion</key>
+				<string>1.0.2</string>
+				<key>AMApplication</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>AMBundleIdentifier</key>
+				<string>com.apple.RunShellScript</string>
+				<key>AMCategory</key>
+				<array>
+					<string>AMCategoryUtilities</string>
+				</array>
+				<key>AMIconName</key>
+				<string>RunShellScript</string>
+				<key>AMKeywords</key>
+				<array>
+					<string>Shell</string>
+					<string>Script</string>
+				</array>
+				<key>AMName</key>
+				<string>シェルスクリプトを実行</string>
+				<key>AMProvides</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.path</string>
+					</array>
+				</dict>
+				<key>ActionBundlePath</key>
+				<string>/System/Library/Automator/Run Shell Script.action</string>
+				<key>ActionName</key>
+				<string>シェルスクリプトを実行</string>
+				<key>ActionParameters</key>
+				<dict>
+					<key>COMMAND_STRING</key>
+					<string>#!/bin/zsh
+export PATH=/usr/local/bin:/opt/homebrew/bin:$PATH
+
+# 同梱バイナリの検疫フラグを除去（初回のみ）
+BUNDLED_BIN="$HOME/Library/Services/画像を圧縮.workflow/Contents/bin"
+xattr -cr "$BUNDLED_BIN" 2&gt;/dev/null
+if [ -x "$BUNDLED_BIN/pngquant" ]; then
+    PNGQUANT="$BUNDLED_BIN/pngquant"
+elif command -v pngquant &amp;&gt; /dev/null; then
+    PNGQUANT="pngquant"
+else
+    PNGQUANT=""
+fi
+
+QUALITY=80
+
+for f in "$@"; do
+    filename=$(basename "$f")
+    extension="${filename##*.}"
+    name="${filename%.*}"
+    dir=$(dirname "$f")
+    ext_lower=$(echo "$extension" | tr '[:upper:]' '[:lower:]')
+
+    case "$ext_lower" in
+        jpg|jpeg)
+            output="${dir}/${name}_compressed.${extension}"
+            sips --setProperty formatOptions "$QUALITY" "$f" --out "$output"
+            ;;
+        png)
+            output="${dir}/${name}_compressed.${extension}"
+            if [ -n "$PNGQUANT" ]; then
+                "$PNGQUANT" --quality=65-80 --force --output "$output" "$f"
+            else
+                sips -s format png "$f" --out "$output"
+            fi
+            ;;
+        heic|heif)
+            output="${dir}/${name}_compressed.jpg"
+            sips -s format jpeg -s formatOptions "$QUALITY" "$f" --out "$output"
+            ;;
+        webp)
+            if command -v cwebp &amp;&gt; /dev/null; then
+                output="${dir}/${name}_compressed.webp"
+                cwebp -q "$QUALITY" "$f" -o "$output"
+            else
+                osascript -e "display notification \"webpの圧縮にはcwebpが必要です\" with title \"画像を圧縮\""
+                continue
+            fi
+            ;;
+        *)
+            osascript -e "display notification \"非対応フォーマット: ${extension}\" with title \"画像を圧縮\""
+            continue
+            ;;
+    esac
+
+    if [ -f "$output" ]; then
+        original_size=$(stat -f%z "$f")
+        compressed_size=$(stat -f%z "$output")
+        ratio=$((compressed_size * 100 / original_size))
+        osascript -e "display notification \"${filename}: ${ratio}%に圧縮\" with title \"画像を圧縮\""
+    fi
+done</string>
+					<key>CheckedForUserDefaultShell</key>
+					<true/>
+					<key>inputMethod</key>
+					<integer>1</integer>
+					<key>shell</key>
+					<string>/bin/zsh</string>
+					<key>source</key>
+					<string></string>
+				</dict>
+				<key>BundleIdentifier</key>
+				<string>com.apple.RunShellScript</string>
+				<key>CFBundleVersion</key>
+				<string>1.0.2</string>
+				<key>CanShowSelectedItemsWhenRun</key>
+				<false/>
+				<key>CanShowWhenRun</key>
+				<true/>
+				<key>Category</key>
+				<array>
+					<string>AMCategoryUtilities</string>
+				</array>
+				<key>Class Name</key>
+				<string>RunShellScriptAction</string>
+				<key>InputUUID</key>
+				<string>F29C86D2-A3E1-4B5C-9D7F-1A2B3C4D5E6F</string>
+				<key>Keywords</key>
+				<array>
+					<string>Shell</string>
+					<string>Script</string>
+				</array>
+				<key>OutputUUID</key>
+				<string>A1B2C3D4-E5F6-7890-ABCD-EF1234567890</string>
+				<key>UUID</key>
+				<string>D4E5F6A7-B8C9-0123-DEFA-456789012345</string>
+				<key>UnlocalizedApplications</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>arguments</key>
+				<dict>
+					<key>0</key>
+					<dict>
+						<key>default value</key>
+						<string>/bin/zsh</string>
+						<key>name</key>
+						<string>shell</string>
+						<key>required</key>
+						<string>YES</string>
+						<key>type</key>
+						<integer>8</integer>
+					</dict>
+					<key>1</key>
+					<dict>
+						<key>default value</key>
+						<string></string>
+						<key>name</key>
+						<string>source</string>
+						<key>required</key>
+						<string>NO</string>
+						<key>type</key>
+						<integer>8</integer>
+					</dict>
+				</dict>
+				<key>is498</key>
+				<true/>
+				<key>is498bundle</key>
+				<false/>
+				<key>name</key>
+				<string>シェルスクリプトを実行</string>
+				<key>version</key>
+				<string>1.0.2</string>
+			</dict>
+		</dict>
+	</array>
+	<key>connectors</key>
+	<dict/>
+	<key>workflowMetaData</key>
+	<dict>
+		<key>inputTypeIdentifier</key>
+		<string>com.apple.Automator.fileSystemObject</string>
+		<key>outputTypeIdentifier</key>
+		<string>com.apple.Automator.nothing</string>
+		<key>presentationMode</key>
+		<integer>15</integer>
+		<key>processesInput</key>
+		<integer>0</integer>
+		<key>serviceInputTypeIdentifier</key>
+		<string>com.apple.Automator.fileSystemObject</string>
+		<key>serviceOutputTypeIdentifier</key>
+		<string>com.apple.Automator.nothing</string>
+		<key>workflowTypeIdentifier</key>
+		<string>com.apple.Automator.servicesMenu</string>
+	</dict>
+</dict>
+</plist>
