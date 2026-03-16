@@ -19,18 +19,21 @@ jobs:
           WORKFLOW_BIN="画像を圧縮.workflow/Contents/bin"
           mkdir -p "$WORKFLOW_BIN"
 
-          # Copy pngquant binary
-          cp $(which pngquant) "$WORKFLOW_BIN/"
-
-          # Copy dependent dylibs (skip system libs)
           PNGQUANT_PATH=$(which pngquant)
-          otool -L "$PNGQUANT_PATH" | grep /opt/homebrew | awk '{print $1}' | while read lib; do
+          echo "pngquant found at: $PNGQUANT_PATH"
+
+          # Copy pngquant binary
+          cp "$PNGQUANT_PATH" "$WORKFLOW_BIN/"
+
+          # Copy non-system dylibs
+          otool -L "$PNGQUANT_PATH" | tail -n +2 | awk '{print $1}' | grep -v '^/usr/lib' | while read lib; do
+            echo "Copying: $lib"
             cp "$lib" "$WORKFLOW_BIN/"
           done
 
           # Rewrite rpaths to use @executable_path
           chmod u+w "$WORKFLOW_BIN/pngquant"
-          otool -L "$PNGQUANT_PATH" | grep /opt/homebrew | awk '{print $1}' | while read lib; do
+          otool -L "$PNGQUANT_PATH" | tail -n +2 | awk '{print $1}' | grep -v '^/usr/lib' | while read lib; do
             libname=$(basename "$lib")
             install_name_tool -change "$lib" "@executable_path/$libname" "$WORKFLOW_BIN/pngquant"
           done
@@ -39,7 +42,9 @@ jobs:
           codesign --force --sign - "$WORKFLOW_BIN/pngquant"
 
           # Verify
+          echo "--- Linked libraries ---"
           otool -L "$WORKFLOW_BIN/pngquant"
+          echo "--- Version ---"
           "$WORKFLOW_BIN/pngquant" --version
 
       - name: Create zip
